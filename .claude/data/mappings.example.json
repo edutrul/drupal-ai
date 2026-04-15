@@ -1,0 +1,12 @@
+{
+  "github_to_jira": {
+    "github-username": {
+      "name": "Full Name",
+      "email": "email@example.com"
+    },
+    "another-username": {
+      "name": "Another Person",
+      "email": "another@example.com"
+    }
+  }
+}

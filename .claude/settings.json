@@ -1,0 +1,121 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-start.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/session-resume.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "ask": [
+      "Bash(ddev drush sql-drop:*)",
+      "Bash(drush sql-drop:*)",
+      "Bash(ddev drush site:install:*)",
+      "Bash(drush site:install:*)",
+      "Bash(acli jira workitem transition:*)",
+      "Bash(acli jira workitem assign:*)",
+      "Bash(acli jira workitem comment:*)",
+      "Bash(acli jira workitem comment create:*)"
+    ],
+    "allow": [
+      "Read(.claude/**)",
+      "Read(.claude/data/**)",
+
+      "Bash(cat *)",
+      "Bash(cat .claude/data/*)",
+      "Bash(grep *)",
+      "Bash(test *)",
+      "Bash(ls *)",
+      "Bash(cd *)",
+
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git show*)",
+      "Bash(git fetch*)",
+      "Bash(git fetch *&&*)",
+      "Bash(git fetch *||*)",
+      "Bash(git checkout*)",
+      "Bash(git checkout -b *)",
+      "Bash(git checkout *&&*)",
+      "Bash(git checkout *||*)",
+      "Bash(git pull*)",
+      "Bash(git stash*)",
+
+      "Bash(gh auth status*)",
+      "Bash(gh auth switch*)",
+      "Bash(gh pr view *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr comment *)",
+      "Bash(gh pr review *)",
+
+      "Bash(ddev describe*)",
+      "Bash(ddev describe *||*)",
+      "Bash(ddev status*)",
+      "Bash(ddev status *||*)",
+      "Bash(ddev start*)",
+      "Bash(ddev start *||*)",
+      "Bash(ddev composer install*)",
+
+      "Bash(ddev drush cim*)",
+      "Bash(ddev drush config:import*)",
+      "Bash(ddev drush cex*)",
+      "Bash(ddev drush config:export*)",
+      "Bash(ddev drush updb*)",
+      "Bash(ddev drush cr*)",
+      "Bash(ddev drush uli*)",
+
+      "Bash(ddev phpcs*)",
+      "Bash(ddev phpcs *&*)",
+      "Bash(ddev phpcs *&&*)",
+      "Bash(ddev phpcs *|*)",
+
+      "Bash(ddev phpstan*)",
+      "Bash(ddev phpstan *|*)",
+      "Bash(ddev phpstan *&&*)",
+
+      "Bash(ddev phpunit*)",
+
+      "Bash(acli auth status*)",
+      "Bash(acli jira project list*)",
+      "Bash(acli jira workitem view*)",
+
+      "Bash(open *)",
+      "Bash(docker info*)",
+
+      "Bash(sh -c *cat*)",
+      "Bash(sh -c *grep*)",
+      "Bash(sh -c *test -f*)",
+      "Bash(sh -c *gh auth status*)",
+      "Bash(sh -c *gh pr view*)",
+      "Bash(sh -c *gh pr list*)",
+      "Bash(sh -c *gh pr diff*)",
+      "Bash(sh -c *ddev describe*)",
+      "Bash(sh -c *ddev status*)",
+      "Bash(sh -c *ddev start*)",
+      "Bash(sh -c *ddev composer install*)",
+      "Bash(sh -c *ddev drush updb*)",
+      "Bash(sh -c *ddev drush cr*)",
+      "Bash(sh -c *ddev drush uli*)",
+      "Bash(sh -c *docker info*)",
+      "Bash(sh -c *open*)"
+    ]
+  }
+}

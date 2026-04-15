@@ -1,0 +1,5 @@
+.idea
+.claude/*.local.json
+.claude/data/mappings.json
+CLAUDE.md
+AGENTS.md

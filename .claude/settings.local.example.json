@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/absolute/path/to/your/project/.claude/**)",
+
+      "Bash(acli auth status*)",
+      "Bash(acli jira project list*)",
+      "Bash(acli jira workitem view*)",
+      "Bash(acli jira workitem transition*)",
+      "Bash(acli jira workitem assign*)",
+      "Bash(acli jira workitem comment*)",
+      "Bash(acli jira workitem comment create*)"
+    ]
+  }
+}
