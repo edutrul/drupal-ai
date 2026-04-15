@@ -1,4 +1,4 @@
-# Drupal Claude Code Configuration
+# Drupal AI
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Drupal 11](https://img.shields.io/badge/Drupal-11-0678BE?logo=drupal&logoColor=white)](https://www.drupal.org)
@@ -6,11 +6,11 @@
 [![Codex](https://img.shields.io/badge/Codex-compatible-412991)](https://openai.com/codex)
 [![skills.sh](https://img.shields.io/badge/skills.sh-listed-brightgreen)](https://skills.sh)
 
-A production-tested Claude Code configuration for Drupal 11 development.
+A production-tested AI toolkit for Drupal 11 development — compatible with Claude Code, OpenAI Codex, Cursor, and GitHub Copilot.
 
 This repository serves a dual purpose:
 
-1. **Active Drupal 11 project** — the `.claude/` configuration is actively used on a real Drupal 11 / DDEV / Acquia Cloud project.
+1. **Active Drupal 11 project** — the AI configuration is actively used on a real Drupal 11 / DDEV / Acquia Cloud project.
 2. **Reusable contribution** — the `.claude/` folder is project-agnostic and can be dropped into any Drupal project.
 
 ---
@@ -19,7 +19,7 @@ This repository serves a dual purpose:
 
 ### Skills (`/skills`)
 
-Invoke-on-demand reference knowledge. Claude loads a skill only when the task requires it, keeping context lean.
+Invoke-on-demand reference knowledge loaded only when the task requires it, keeping context lean.
 
 | Skill | Description |
 |---|---|
@@ -92,7 +92,7 @@ Slash commands for common workflows.
 
 ### Rules (`/rules`)
 
-Always-loaded context files that shape Claude's behavior in this project.
+Always-loaded context files that shape AI behavior in this project.
 
 | Rule | What it enforces |
 |---|---|
@@ -108,7 +108,7 @@ Always-loaded context files that shape Claude's behavior in this project.
 
 ### Hooks (`/hooks`)
 
-Shell scripts triggered automatically by Claude Code events.
+Shell scripts triggered automatically by AI tool events (Claude Code hooks).
 
 - `session-start.sh` — runs on startup and resume; checks DDEV status, git branch, site health
 - `session-resume.sh` — runs after `/clear` or `/compact`; re-establishes context
@@ -189,4 +189,4 @@ This configuration is battle-tested on a production Drupal 11 platform powering 
 
 Stack: Drupal 11 / PHP 8.3 / MySQL 8.0 / DDEV / Acquia Cloud / Storybook 9 + ViteJS 6.
 
-The `.claude/` folder is intentionally decoupled from the Drupal codebase so it can be maintained and contributed independently.
+The `.claude/` folder is intentionally decoupled from the Drupal codebase so it can be maintained and contributed independently. Codex users can symlink `.claude/skills` into `.codex/skills` — see [`.codex/README.md`](.codex/README.md).
