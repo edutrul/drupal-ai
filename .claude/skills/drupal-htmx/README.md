@@ -50,6 +50,91 @@ HTMX 2.0.4 landed in **Drupal 11.3.0** as a core library. No contrib module requ
 - Trigger a custom JS event from a Drupal controller after an HTMX swap
 - Add a delete button that asks for confirmation before sending an HTMX DELETE request
 
+## Full Example: Dependent Selects Form
+
+Complete `FormBase` implementation for cascading dropdowns via HTMX.
+
+```php
+use Drupal\Core\Form\FormBase;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Htmx\Htmx;
+use Drupal\Core\Url;
+
+final class DependentSelectForm extends FormBase {
+
+  public function getFormId(): string {
+    return 'mymodule_dependent_select';
+  }
+
+  public function buildForm(array $form, FormStateInterface $form_state, string $type = '', string $value = ''): array {
+    $formUrl = Url::fromRoute('<current>');
+
+    $form['type'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Type'),
+      '#empty_value' => '',
+      '#options' => ['a' => 'A', 'b' => 'B'],
+      '#default_value' => $type,
+    ];
+    (new Htmx())
+      ->post($formUrl)
+      ->swap('none')
+      ->swapOob('true')
+      ->applyTo($form['type']);
+
+    $form['value'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Value'),
+      '#empty_value' => '',
+      '#options' => $this->getOptionsFor($form_state->getValue('type', $type)),
+      '#default_value' => $value,
+    ];
+    (new Htmx())
+      ->post($formUrl)
+      ->swap('none')
+      ->swapOob('true')
+      ->applyTo($form['value']);
+
+    $trigger = $form_state->getUserInput()['_triggering_element_name'] ?? FALSE;
+    if ($trigger === 'type') {
+      (new Htmx())->pushUrlHeader(Url::fromRoute('mymodule.form'))->applyTo($form['type']);
+    }
+    elseif ($trigger === 'value') {
+      $t = $form_state->getValue('type', $type);
+      $v = $form_state->getValue('value', $value);
+      (new Htmx())->pushUrlHeader(Url::fromRoute('mymodule.form', ['type' => $t, 'value' => $v]))->applyTo($form['value']);
+    }
+
+    return $form;
+  }
+
+  public function submitForm(array &$form, FormStateInterface $form_state): void {}
+
+  protected function getOptionsFor(string $type): array {
+    return match($type) {
+      'a' => [1 => 'One', 2 => 'Two'],
+      'b' => [3 => 'Three', 4 => 'Four'],
+      default => [],
+    };
+  }
+
+}
+```
+
+Route definition passing URL params to `buildForm()`:
+
+```yaml
+mymodule.form:
+  path: '/mymodule/form/{type}/{value}'
+  defaults:
+    _form: '\Drupal\mymodule\Form\DependentSelectForm'
+    _title: 'My Form'
+    type: ''
+    value: ''
+  requirements:
+    _permission: 'access content'
+```
+
 ## Sources
 
 - [`web/core/lib/Drupal/Core/Htmx/Htmx.php`](https://git.drupalcode.org/project/drupal/-/blob/11.x/core/lib/Drupal/Core/Htmx/Htmx.php) — the PHP API

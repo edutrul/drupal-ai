@@ -70,97 +70,46 @@ $htmx->onlyMainContent()       // adds data-hx-drupal-only-main-content (trigger
 ### Response Headers (applied to render array, sent with response)
 
 ```php
-$htmx->pushUrlHeader(Url::fromRoute('mymodule.route'))   // HX-Push-Url
-$htmx->replaceUrlHeader($url)                             // HX-Replace-Url
-$htmx->redirectHeader($url)                               // HX-Redirect
-$htmx->locationHeader($url)                               // HX-Location
-$htmx->triggerHeader('myEvent')                           // HX-Trigger
-$htmx->triggerHeader(['event' => ['key' => 'val']])       // HX-Trigger with data
-$htmx->triggerAfterSettleHeader('myEvent')
-$htmx->triggerAfterSwapHeader('myEvent')
-$htmx->refreshHeader(true)                                // HX-Refresh
-$htmx->reswapHeader('innerHTML')                          // HX-Reswap
-$htmx->retargetHeader('#new-target')                      // HX-Retarget
-$htmx->reselectHeader('#css-selector')                    // HX-Reselect
+$htmx->pushUrlHeader($url)                  // HX-Push-Url
+$htmx->redirectHeader($url)                 // HX-Redirect
+$htmx->triggerHeader('myEvent')             // HX-Trigger (also accepts array with data)
+$htmx->triggerAfterSettleHeader('myEvent')  // HX-Trigger-After-Settle
+$htmx->refreshHeader(true)                  // HX-Refresh
+// Also: replaceUrlHeader, locationHeader, reswapHeader, retargetHeader, reselectHeader, triggerAfterSwapHeader
 ```
 
 ## Pattern: Dependent Selects (Dynamic Forms)
 
-The canonical pattern — a select that updates another select without page reload.
+A select that updates another select without page reload. Each field posts to `<current>` with `swapOob` so both fields re-render out-of-band.
 
 ```php
-use Drupal\Core\Form\FormBase;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Htmx\Htmx;
-use Drupal\Core\Url;
+public function buildForm(array $form, FormStateInterface $form_state, string $type = '', string $value = ''): array {
+  $formUrl = Url::fromRoute('<current>');
 
-class DependentSelectForm extends FormBase {
+  $form['type'] = [
+    '#type' => 'select',
+    '#options' => ['a' => 'A', 'b' => 'B'],
+    '#default_value' => $type,
+  ];
+  (new Htmx())->post($formUrl)->swap('none')->swapOob('true')->applyTo($form['type']);
 
-  public function getFormId(): string {
-    return 'mymodule_dependent_select';
+  $form['value'] = [
+    '#type' => 'select',
+    '#options' => $this->getOptionsFor($form_state->getValue('type', $type)),
+    '#default_value' => $value,
+  ];
+  (new Htmx())->post($formUrl)->swap('none')->swapOob('true')->applyTo($form['value']);
+
+  // Optionally push URL on change:
+  $trigger = $form_state->getUserInput()['_triggering_element_name'] ?? FALSE;
+  if ($trigger) {
+    (new Htmx())->pushUrlHeader(Url::fromRoute('mymodule.form', [...]))->applyTo($form[$trigger]);
   }
 
-  public function buildForm(array $form, FormStateInterface $form_state, string $type = '', string $value = ''): array {
-    $formUrl = Url::fromRoute('<current>');
-
-    $form['type'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Type'),
-      '#empty_value' => '',
-      '#options' => ['a' => 'A', 'b' => 'B'],
-      '#default_value' => $type,
-    ];
-    (new Htmx())
-      ->post($formUrl)
-      ->swap('none')       // don't replace the trigger element
-      ->swapOob('true')    // replace matching elements out-of-band
-      ->applyTo($form['type']);
-
-    $currentType = $form_state->getValue('type', $type);
-    $form['value'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Value'),
-      '#empty_value' => '',
-      '#options' => $this->getOptionsFor($currentType),
-      '#default_value' => $value,
-    ];
-    (new Htmx())
-      ->post($formUrl)
-      ->swap('none')
-      ->swapOob('true')
-      ->applyTo($form['value']);
-
-    // Push URL when both selections are complete.
-    $trigger = $this->getTriggerElement($form_state);
-    if ($trigger === 'type') {
-      (new Htmx())->pushUrlHeader(Url::fromRoute('mymodule.form'))->applyTo($form['type']);
-    }
-    elseif ($trigger === 'value') {
-      $t = $form_state->getValue('type', $type);
-      $v = $form_state->getValue('value', $value);
-      $push = Url::fromRoute('mymodule.form', ['type' => $t, 'value' => $v]);
-      (new Htmx())->pushUrlHeader($push)->applyTo($form['value']);
-    }
-
-    return $form;
-  }
-
-  public function submitForm(array &$form, FormStateInterface $form_state): void {}
-
-  protected function getOptionsFor(string $type): array {
-    return match($type) {
-      'a' => [1 => 'One', 2 => 'Two'],
-      'b' => [3 => 'Three', 4 => 'Four'],
-      default => [],
-    };
-  }
-
-  protected function getTriggerElement(FormStateInterface $form_state): string|false {
-    $input = $form_state->getUserInput();
-    return !empty($input['_triggering_element_name']) ? $input['_triggering_element_name'] : FALSE;
-  }
-
+  return $form;
 }
+
+public function submitForm(array &$form, FormStateInterface $form_state): void {}
 ```
 
 ## Pattern: Partial Route (`_htmx_route`)
@@ -354,3 +303,20 @@ public function buildForm(array $form, FormStateInterface $form_state, string $t
 **Forgetting `swap('none')` on oob triggers:** When using `swapOob`, the trigger element itself also gets swapped unless you set `swap('none')`.
 
 **CSRF on POST:** Drupal's Form API handles CSRF tokens. For non-form HTMX POSTs to controllers, add the route requirement `_csrf_token: 'TRUE'` and append `?token={{ drupal_csrf_token(...) }}` to the URL.
+
+**Raw markup for target placeholders:** Never use `#markup` to render a standalone HTMX target div — it bypasses Drupal's render pipeline. Use `#type => 'html_tag'` with `#attributes` instead:
+
+```php
+// Bad
+'target' => ['#markup' => '<div id="greeting-target"></div>'],
+
+// Good
+'target' => [
+  '#type' => 'html_tag',
+  '#tag' => 'div',
+  '#value' => '',
+  '#attributes' => ['id' => 'greeting-target'],
+],
+```
+
+If the target can be the wrapper of an existing render element, skip the separate div and use `applyTo()` with `'#wrapper_attributes'` plus an `#attributes['id']` on that element instead.
